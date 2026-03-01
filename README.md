@@ -27,5 +27,3 @@ Speed dating produces rich interaction data. This project builds a **predictive 
 ✔ Reproducible training pipeline
 
 ---
-
-## 📁 Repository Structure
