@@ -1,0 +1,34 @@
+query = "Clean 'speeddating.csv', select top 10 features, and predict match probability."
+
+for output in app.stream({"messages": [HumanMessage(content=query)]}, stream_mode="updates"):
+    for node_name, state_update in output.items():
+        # 1. Capture the Agent's Thought/Reasoning
+        if node_name == "scientist":
+            message = state_update["messages"][-1]
+            
+            # If the agent is calling tools
+            if message.tool_calls:
+                print(f"\n🤔 THOUGHT:")
+                # Sometimes content is empty when calling tools, so we describe the intent
+                print(f"I need to use tools to process the data. Calling: {[t['name'] for t in message.tool_calls]}")
+                
+                for tool_call in message.tool_calls:
+                    print(f"🛠️  ACTION: {tool_call['name']}({tool_call['args']})")
+            
+            # If it's the final response (no more tool calls)
+            else:
+                print(f"\n✅ FINAL ANALYSIS:")
+                print("-" * 20)
+                print(message.content)
+                print("-" * 20)
+
+        # 2. Capture the Tool's Output (Observation)
+        elif node_name == "tools":
+            # The tool node returns a list of ToolMessages
+            for tool_msg in state_update["messages"]:
+                print(f"\n👁️  OBSERVATION:")
+                # We limit long outputs like CSV summaries for readability
+                print(f"{str(tool_msg.content)[:500]}...") 
+
+print("\n" + "="*50)
+print("🏁 Workflow Complete.")
