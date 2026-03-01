@@ -1,0 +1,17 @@
+class AgentState(TypedDict):
+    messages: Annotated[List[BaseMessage], add]
+
+tools = [clean_speed_dating_data, select_top_features, train_probability_model]
+openai_api_key = os.environ.get('OPENAI_API_KEY')
+llm = ChatOpenAI(model="gpt-4o-mini", 
+                 api_key=openai_api_key,
+                 temperature=0).bind_tools(tools)
+
+def agent_reasoning(state: AgentState):
+    system_prompt = SystemMessage(content=(
+        "You are a Match Prediction Expert. You must use the tools sequentially. "
+        "First, clean the data. Then, select the best features. "
+        "Finally, train the model and report the probability quality (ROC AUC)."
+    ))
+    response = llm.invoke([system_prompt] + state["messages"])
+    return {"messages": [response]}
