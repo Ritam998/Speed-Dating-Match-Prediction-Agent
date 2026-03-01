@@ -1,0 +1,20 @@
+@tool
+def clean_speed_dating_data(speeddating: str):
+    df = pd.read_csv(speeddating)
+    
+    # 1. Drop Leakage: 'decision' and 'decision_o' are the individual votes.
+    # If we know these, the match is 100% certain. For probability, we drop them.
+    df = df.drop(columns=['has_null', 'decision', 'decision_o'], errors='ignore')
+
+    # 2. Clean byte-strings (e.g., b'female' -> female)
+    for col in df.select_dtypes(include=['object']).columns:
+        df[col] = df[col].astype(str).str.replace("b'", "").str.replace("'", "")
+        le = LabelEncoder()
+        df[col] = le.fit_transform(df[col])
+
+    # 3. Impute missing values
+    imputer = SimpleImputer(strategy='median')
+    df_clean = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+    
+    df_clean.to_csv('cleaned_data.csv', index=False)
+    return f"Data cleaned. Rows: {len(df_clean)}. Saved to 'cleaned_data.csv'."
