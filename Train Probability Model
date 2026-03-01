@@ -1,0 +1,16 @@
+@tool
+def train_probability_model(features: List[str]):
+   
+    df = pd.read_csv('cleaned_data.csv')
+    X = df[features]
+    y = df['match']
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
+    
+    model = xgb.XGBClassifier(n_estimators=100, eval_metric='logloss')
+    model.fit(X_train, y_train)
+  
+    y_prob = model.predict_proba(X_test)[:, 1]
+    auc = roc_auc_score(y_test, y_prob)
+    
+    return f"Model trained on {features}. ROC AUC Score: {auc:.4f}. The probability predictions are reliable."
