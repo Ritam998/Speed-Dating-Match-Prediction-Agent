@@ -1,0 +1,15 @@
+workflow = StateGraph(AgentState)
+workflow.add_node("scientist", agent_reasoning)
+workflow.add_node("tools", ToolNode(tools))
+workflow.set_entry_point("scientist")
+
+# ReAct Loop logic
+def router(state):
+    if state["messages"][-1].tool_calls:
+        return "call_tool"
+    return "end"
+
+workflow.add_conditional_edges("scientist", router, {"call_tool": "tools", "end": END})
+workflow.add_edge("tools", "scientist")
+
+app = workflow.compile()
